@@ -15,8 +15,8 @@ class TestTextNodeToHtmlNode(unittest.TestCase):
         self.assertEqual(html_node.tag, None)
         self.assertEqual(html_node.value, "Hello, world!")
 
-    def test_text_node_to_html_node_italics(self):
-        node = TextNode("Hello, world!", "italics")
+    def test_text_node_to_html_node_italic(self):
+        node = TextNode("Hello, world!", "italic")
         html_node = text_node_to_html_node(node)
         self.assertEqual(html_node.tag, "i")
         self.assertEqual(html_node.value, "Hello, world!")

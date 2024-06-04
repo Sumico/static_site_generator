@@ -3,7 +3,7 @@ import re
 
 text_type_text = "text"
 text_type_bold = "bold"
-text_type_italics = "italics"
+text_type_italic = "italic"
 text_type_link = "link"
 text_type_code = "code"
 text_type_image = "image"
@@ -32,7 +32,7 @@ def text_node_to_html_node(node):
         return LeafNode("b", node.text)
     if node.text_type == text_type_text:
         return LeafNode(None, node.text)
-    if node.text_type == text_type_italics:
+    if node.text_type == text_type_italic:
         return LeafNode("i", node.text)
     if node.text_type == text_type_link:
         return LeafNode("a", node.text, {"href": node.url})
@@ -47,10 +47,10 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
     new_nodes = []
     for node in old_nodes:
         if node.text_type == text_type_text and delimiter in node.text:
-            parts = re.split(f"({re.escape(delimiter)})", node.text)
+            parts = node.text.split()
             if len([part for part in parts if part == delimiter]) % 2 != 0:
                 raise ValueError(f"Invalid markdown: {delimiter} not closed properly")
-            for i, part in enumerate(parts)
+            for i, part in enumerate(parts):
                 if part == delimiter:
                     continue
                 new_text_type = (
