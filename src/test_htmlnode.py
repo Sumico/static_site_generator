@@ -26,11 +26,13 @@ class TestHTMLNode(unittest.TestCase):
 
     def test_parent_node_no_children(self):
         with self.assertRaises(ValueError):
-            ParentNode('div', None, None)
+            node = ParentNode('div', None, None)
+            node.to_html()
 
     def test_parent_node_no_tag(self):
         with self.assertRaises(ValueError):
-            ParentNode(None, None, [LeafNode('p', 'Hello')])
+            node = ParentNode(None, None, [LeafNode('p', 'Hello')])
+            node.to_html()
 
     def test_parent_node_with_one_leaf_child(self):
         node = ParentNode('div', None, [LeafNode('p', 'Hello')])

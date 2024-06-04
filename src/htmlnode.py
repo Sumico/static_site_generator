@@ -58,11 +58,12 @@ class ParentNode(HTMLNode):
         """
 
     def to_html(self):
-        html_string=""
+        
         if self.tag is None:
             raise ValueError("Invalid HTML: no tag")
         if self.children is None:
             raise ValueError("Invalid HTML: no children")
+        html_string = ""
         for child in self.children:
             if child.children is None:
                 node = LeafNode(child.tag, child.value, child.props)
