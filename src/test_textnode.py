@@ -1,6 +1,6 @@
 import unittest
 
-from textnode import TextNode
+from textnode import TextNode, split_nodes_delimiter
 
 
 class TestTextNode(unittest.TestCase):
@@ -24,5 +24,31 @@ class TestTextNode(unittest.TestCase):
         self.assertEqual(node.text, "This is a text node")
         self.assertEqual(node.text_type, "italics")
         self.assertEqual(node.url, "https://url.com")
+
+    def test_split_nodes_delimiter(self):
+        nodes = [
+            TextNode("This is some text", "text"),
+            TextNode("This is **bold** text", "text"),
+            TextNode("This is *italics* text", "text"),
+            TextNode("This is `code` text", "text"),
+            TextNode("This is a [link](https://url.com)", "text"),
+            TextNode("This is an image: ![alt text](https://image.com)", "text"),
+        ]
+        delimiter = "*"
+        text_type = "italics"
+        expected_nodes = [
+            TextNode("This is some text", "text"),
+            TextNode("This is ", "text"),
+            TextNode("italics", "italics"),
+            TextNode(" text", "text"),
+            TextNode("This is **bold** text", "text"),
+            TextNode("This is `code` text", "text"),
+            TextNode("This is a [link](https://url.com)", "text"),
+            TextNode("This is an image: ![alt text](https://image.com)", "text"),
+        ]
+        result_nodes = split_nodes_delimiter(nodes, delimiter, text_type)
+        self.assertEqual(result_nodes, expected_nodes)
+
+
 if __name__ == "__main__":
     unittest.main()

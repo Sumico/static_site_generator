@@ -1,4 +1,5 @@
 from htmlnode import LeafNode
+import re
 
 text_type_text = "text"
 text_type_bold = "bold"
@@ -45,5 +46,20 @@ def text_node_to_html_node(node):
 def split_nodes_delimiter(old_nodes, delimiter, text_type):
     new_nodes = []
     for node in old_nodes:
-        if delimiter in node.text:
-            parts = node.text.split(delimiter)
+        if node.text_type == text_type_text and delimiter in node.text:
+            parts = re.split(f"({re.escape(delimiter)})", node.text)
+            if len([part for part in parts if part == delimiter]) % 2 != 0:
+                raise ValueError(f"Invalid markdown: {delimiter} not closed properly")
+            for i, part in enumerate(parts)
+                if part == delimiter:
+                    continue
+                new_text_type = (
+                    text_type
+                    if (i > 0 and parts[i - 1] == delimiter)
+                    else text_type_text
+                )
+                print("SPLITTING NODE:", part, new_text_type)
+                new_nodes.append(TextNode(part, new_text_type))
+            continue
+        new_nodes.append(node)
+    return new_nodes
