@@ -45,21 +45,98 @@ def text_node_to_html_node(node):
 
 def split_nodes_delimiter(old_nodes, delimiter, text_type):
     new_nodes = []
-    for node in old_nodes:
-        if node.text_type == text_type_text and delimiter in node.text:
-            parts = node.text.split()
-            if len([part for part in parts if part == delimiter]) % 2 != 0:
-                raise ValueError(f"Invalid markdown: {delimiter} not closed properly")
-            for i, part in enumerate(parts):
-                if part == delimiter:
-                    continue
-                new_text_type = (
-                    text_type
-                    if (i > 0 and parts[i - 1] == delimiter)
-                    else text_type_text
-                )
-                print("SPLITTING NODE:", part, new_text_type)
-                new_nodes.append(TextNode(part, new_text_type))
+    for old_node in old_nodes:
+        if old_node.text_type != text_type_text:
+            new_nodes.append(old_node)
             continue
-        new_nodes.append(node)
+        split_nodes = []
+        sections = old_node.text.split(delimiter)
+        if len(sections) % 2 == 0:
+            raise ValueError("Invalid markdown, formatted section not closed")
+        for i in range(len(sections)):
+            if sections[i] == "":
+                continue
+            if i % 2 == 0:
+                split_nodes.append(TextNode(sections[i], text_type_text))
+            else:
+                split_nodes.append(TextNode(sections[i], text_type))
+        new_nodes.extend(split_nodes)
     return new_nodes
+
+
+def is_image(text):
+    return re.match(r"!\[.*?\]\(.*?\)", text) is not None
+
+
+def is_link(text):
+    return re.match(r"\[.*?\]\(.*?\)", text) is not None
+
+
+def extract_markdown_images(text):
+    image_nodes = []
+    for match in re.finditer(r"!\[(.*?)\]\((.*?)\)", text):
+        image_nodes.append(TextNode(match.group(1), text_type_image, match.group(2)))
+    return image_nodes
+
+
+def extract_markdown_links(text):
+    link_nodes = []
+    for match in re.finditer(r"\[(.*?)\]\((.*?)\)", text):
+        link_nodes.append(TextNode(match.group(1), text_type_link, match.group(2)))
+    return link_nodes
+
+
+def split_nodes_image(old_nodes):
+    new_nodes = []
+    pattern = r"(!\[.*?\]\(.*?\)|[^!]*?(?=\!\[|$))"
+    for old_node in old_nodes:
+        split_nodes = []
+        if old_node.text == "":
+            new_nodes.append(old_node)
+            continue
+        if old_node.text_type != text_type_text:
+            new_nodes.append(old_node)
+            continue
+        split = re.findall(pattern, old_node.text)
+        parts = [part for part in split if part != ""]
+        for part in parts:
+            if is_image(part):
+                image_nodes = extract_markdown_images(part)
+                split_nodes.extend(image_nodes)
+            else:
+                split_nodes.append(TextNode(part, text_type_text))
+        new_nodes.extend(split_nodes)
+    return new_nodes
+
+
+def split_nodes_link(old_nodes):
+    new_nodes = []
+    pattern = r"(\[.*?\]\(.*?\)|[^[]*?(?=\[|$))"
+    for old_node in old_nodes:
+        split_nodes = []
+        if old_node.text == "":
+            new_nodes.append(old_node)
+            continue
+        if old_node.text_type != text_type_text:
+            new_nodes.append(old_node)
+            continue
+        split = re.findall(pattern, old_node.text)
+        parts = [part for part in split if part != ""]
+        for part in parts:
+            if is_link(part):
+                link_nodes = extract_markdown_links(part)
+                split_nodes.extend(link_nodes)
+            else:
+                split_nodes.append(TextNode(part, text_type_text))
+        new_nodes.extend(split_nodes)
+    return new_nodes
+
+
+def text_to_textnodes(text):
+    text_nodes = [TextNode(text, text_type_text)]
+    text_nodes = split_nodes_delimiter(text_nodes, "**", text_type_bold)
+    text_nodes = split_nodes_delimiter(text_nodes, "*", text_type_italic)
+    text_nodes = split_nodes_delimiter(text_nodes, "`", text_type_code)
+    text_nodes = split_nodes_image(text_nodes)
+    text_nodes = split_nodes_link(text_nodes)
+    return text_nodes
